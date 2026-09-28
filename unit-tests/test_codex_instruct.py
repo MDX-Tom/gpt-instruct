@@ -100,6 +100,37 @@ class ManagedConfigTests(unittest.TestCase):
             config_path.read_text(encoding="utf-8"),
         )
 
+    def test_astra_v1_prompt_installs_on_sol_without_switching_model(self) -> None:
+        original = (
+            'model = "gpt-6-sol"\n'
+            'model_reasoning_effort = "high"\n'
+            'model_provider = "openai"\n'
+            'model_instructions_file = "./personal.md"\n'
+        )
+        temporary_directory, config_path = self.make_config(original)
+        self.addCleanup(temporary_directory.cleanup)
+        codex_home = config_path.parent
+
+        with patch.object(
+            sys,
+            "argv",
+            ["codex-instruct.py", "--apply", "--version", "gpt-6-v1", "--codex-dir", str(codex_home)],
+        ):
+            self.assertEqual(codex_instruct.main(), 0)
+
+        deployed = codex_home / "gpt-6-astra-v1.md"
+        with zipfile.ZipFile(PROJECT_ROOT / "gpt-6-astra-v1.zip") as archive:
+            self.assertEqual(deployed.read_bytes(), archive.read("gpt-6-astra-v1.md"))
+        self.assertEqual(
+            config_path.read_text(encoding="utf-8"),
+            original.replace("./personal.md", "./gpt-6-astra-v1.md"),
+        )
+
+        changed, status = codex_instruct.restore_managed_model_instructions(config_path)
+        self.assertTrue(changed)
+        self.assertEqual(status, "restored")
+        self.assertEqual(config_path.read_text(encoding="utf-8"), original)
+
     def test_interactive_menu_selects_each_packaged_version(self) -> None:
         with patch("builtins.input", return_value="1"):
             self.assertEqual(

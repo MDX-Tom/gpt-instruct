@@ -105,6 +105,19 @@ python3 codex-instruct.py --apply --version gpt-5.6-v45
 python3 codex-instruct.py --apply --version gpt-6-v1
 ```
 
+### Use the Astra v1 prompt with GPT-6 Sol
+
+The `gpt-6-v1` selector chooses an **instruction file**, not a model. If your
+`config.toml` already has `model = "gpt-6-sol"`, the same command above installs
+`gpt-6-astra-v1.md` while leaving the model, reasoning effort, provider, and
+authentication untouched. Restart Codex (or start a fresh session) so the new
+instructions are loaded. To return to your previous instruction entry, run
+`python3 codex-instruct.py --reset` and confirm the prompt.
+
+This is a cross-model installation path, **not** a GPT-6 Sol evaluation result.
+The A/B figures above were measured on Astra; run the gates on Sol before
+claiming equivalent quality.
+
 Run the script without arguments for the interactive menu. Additional commands:
 
 ```bash

@@ -107,6 +107,17 @@ python3 codex-instruct.py --apply --version gpt-5.6-v45
 python3 codex-instruct.py --apply --version gpt-6-v1
 ```
 
+### 在 GPT-6 Sol 上使用 Astra v1 提示词
+
+`gpt-6-v1` 选择的是**提示词文件**，不是模型。若 `config.toml` 已设置
+`model = "gpt-6-sol"`，上述命令会安装 `gpt-6-astra-v1.md`，同时保留模型、
+推理强度、provider 和认证配置。重启 Codex 或开启新会话以加载新提示词。
+需要恢复原来的提示词配置项时，运行 `python3 codex-instruct.py --reset`
+并确认操作。
+
+这是跨模型安装方式，**不是** GPT-6 Sol 评测结果。上面的 A/B 数据来自 Astra；
+在宣称 Sol 上具有同等效果前，应先使用 Sol 运行门禁评测。
+
 不带参数运行可打开交互式菜单。常用补充命令：
 
 ```bash
