@@ -190,6 +190,30 @@ jobs:
         with:
           path: ${{ env.STAR_HISTORY_SITE_DIR }}
 
+      # The artifact service can list a just-finalized upload a moment after
+      # the upload step returns. A fast run used to query the artifact list in
+      # that window and fail with "No artifacts named github-pages were found".
+      # Wait for the artifact to become visible before the deployment step
+      # looks it up.
+      - name: Wait for the Pages artifact to become visible
+        if: steps.render.outputs.changed == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            visible=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              --jq '[.artifacts[] | select(.name == "github-pages")] | length' 2>/dev/null || echo 0)
+            if [ "${visible}" -gt 0 ]; then
+              echo "The github-pages artifact is visible (attempt ${attempt})."
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::The github-pages artifact did not become visible in time."
+          exit 1
+
       - name: Deploy Pages artifact
         if: steps.render.outputs.changed == 'true'
         id: deployment

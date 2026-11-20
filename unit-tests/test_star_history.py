@@ -334,6 +334,21 @@ class StarHistoryDataTests(unittest.TestCase):
 
 
 class StarHistoryUpstreamPatchTests(unittest.TestCase):
+    # A fast run can upload the Pages artifact a moment before the artifact
+    # service lists it; the deployment step must wait for that listing instead
+    # of failing with "No artifacts named github-pages were found".
+    def test_workflow_waits_for_the_pages_artifact_before_deploying(self) -> None:
+        workflow = (
+            PROJECT_ROOT / ".github" / "workflows" / "sync-star-history.yml"
+        ).read_text(encoding="utf-8")
+        upload = workflow.index("Upload Pages artifact")
+        wait = workflow.index("Wait for the Pages artifact to become visible")
+        deploy = workflow.index("Deploy Pages artifact")
+        self.assertLess(upload, wait)
+        self.assertLess(wait, deploy)
+        self.assertIn("actions/runs/${GITHUB_RUN_ID}/artifacts", workflow)
+        self.assertIn('select(.name == "github-pages")', workflow)
+
     # Production may use GitHub repository metadata and this project's Pages
     # cache, but neither a hosted Star History endpoint nor stargazer listing.
     def test_pipeline_contains_no_hosted_service_or_stargazer_listing(self) -> None:
