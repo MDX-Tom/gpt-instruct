@@ -42,3 +42,6 @@ AGENTS.md
 # 提示词能力、bank/runner/scorer 合约测试也属于 scripts；unit-tests/ 仅保留
 # 部署、回滚及其他项目基本功能测试，禁止在其中重复敏感评测夹具。
 /scripts/*.py
+
+# epoch 2/3 的会话壳驱动器：内含本机绝对路径，只在本地运行，不随仓库发布。
+/scripts/*.sh
