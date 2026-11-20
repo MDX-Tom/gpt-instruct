@@ -32,12 +32,18 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Python 3.8 is no longer published for the current ubuntu-latest image,
+    # so the oldest supported release runs on the last image that still ships it.
+    runs-on: ${{ matrix.os }}
     # Keep both matrix jobs running so a compatibility failure is visible independently.
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.13"]
+        include:
+          - python-version: "3.8"
+            os: ubuntu-24.04
+          - python-version: "3.13"
+            os: ubuntu-latest
 
     steps:
       - name: Check out repository
