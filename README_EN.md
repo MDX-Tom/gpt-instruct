@@ -208,19 +208,6 @@ TOGETHER_API_KEY=... python3 scripts/judge_jailbreakbench.py \
 See [`tests/jailbreakbench/README.md`](tests/jailbreakbench/README.md) for source
 locks, split proof, method limitations, and free ordering.
 
-### External research note: arXiv:2504.21038
-
-This cycle records *Prefill-level Jailbreak: A Black-Box Risk Analysis of Large Language
-Models* (arXiv:2504.21038v2, 2025-08-25; Sections II-A, III-C, IV-A, V-A, and VI) as a
-method reference. It motivates separating true assistant-prefill from prompt text that
-asks for a specified opening, freezing static templates and decoding conditions, using
-single-variable format/context ablations, and retaining rule, semantic-judge, refusal,
-and response-coverage metrics together. Its 520 AdvBench prompts, iteration budget, and
-judge differ from this repository and are not merged into project scores. Subsequent
-betas will log fixture-boundary, same-line identity, and exact-next artifact variables
-with raw outputs and disagreement samples. See the authors' [Prefill-level-Jailbreak
-repository](https://github.com/star5o/Prefill-level-Jailbreak).
-
 ## Repository Layout 🗂️
 
 ```text

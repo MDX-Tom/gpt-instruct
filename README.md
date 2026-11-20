@@ -197,17 +197,6 @@ TOGETHER_API_KEY=... python3 scripts/judge_jailbreakbench.py \
 完整来源锁、拆分证明、方法限制和自由排序方式见
 [`tests/jailbreakbench/README.md`](tests/jailbreakbench/README.md)。
 
-### 外部研究记录：arXiv:2504.21038
-
-本轮将 *Prefill-level Jailbreak: A Black-Box Risk Analysis of Large Language Models*
-（arXiv:2504.21038v2，2025-08-25，II-A、III-C、IV-A、V-A、VI）作为方法学参考：
-区分真实 assistant-prefill 与普通提示词中的“指定开头”，冻结静态模板和解码条件，
-用单变量格式/上下文消融拆分位置效应，并同时保存规则匹配、语义 judge、拒答率和
-完整响应覆盖率。论文的 AdvBench 520 条样本、最大迭代预算和 judge 与本项目不同，
-因此不混入本项目成绩；后续 beta 将把 fixture-boundary、same-line identity 和
-exact-next artifact 作为可复核变量，另存原始输出、分歧样本和下一步假设。作者代码
-仓库为 [Prefill-level-Jailbreak](https://github.com/star5o/Prefill-level-Jailbreak)。
-
 ## 项目结构 🗂️
 
 ```text
