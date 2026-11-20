@@ -4,16 +4,47 @@ import importlib.util
 import json
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-SPEC = importlib.util.spec_from_file_location(
-    "generate_gpt62_trend_svg",
-    PROJECT_ROOT / "scripts" / "generate_gpt62_trend_svg.py",
-)
-assert SPEC and SPEC.loader
-trend = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(trend)
+
+
+def load_generator_module():
+    """Load the chart generator from the local source or its published archive.
+
+    Only the same-name ZIP is tracked, so CI checks out the archive rather
+    than the Python source.
+    """
+    source = PROJECT_ROOT / "scripts" / "generate_gpt62_trend_svg.py"
+    if source.is_file():
+        spec = importlib.util.spec_from_file_location(
+            "generate_gpt62_trend_svg",
+            source,
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    archive = PROJECT_ROOT / "scripts" / "generate_gpt62_trend_svg.zip"
+    with zipfile.ZipFile(archive) as bundle:
+        names = bundle.namelist()
+        assert names, "the published archive is empty"
+        with tempfile.TemporaryDirectory() as temporary:
+            extracted = Path(temporary) / names[0]
+            extracted.write_bytes(bundle.read(names[0]))
+            spec = importlib.util.spec_from_file_location(
+                "generate_gpt62_trend_svg",
+                extracted,
+            )
+            assert spec and spec.loader
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+
+
+trend = load_generator_module()
 
 
 class ChartGeometryTests(unittest.TestCase):
