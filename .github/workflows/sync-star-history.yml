@@ -209,9 +209,35 @@ jobs:
               core.setFailed('The artifact service endpoint or runtime token is unavailable.');
               return;
             }
+            // The artifact service scopes a listing to the current run through
+            // the backend ids carried in the runtime token.
+            let runBackendId = '';
+            let jobBackendId = '';
+            try {
+              const claims = JSON.parse(
+                Buffer.from(runtimeToken.split('.')[1], 'base64url').toString('utf8')
+              );
+              const scope = (claims.scp || '')
+                .split(' ')
+                .find((part) => part.startsWith('Actions.Results:'));
+              const parts = scope ? scope.split(':') : [];
+              runBackendId = parts[1] || '';
+              jobBackendId = parts[2] || '';
+            } catch (error) {
+              core.setFailed(`Cannot read the artifact backend ids: ${error.message}`);
+              return;
+            }
+            if (!runBackendId || !jobBackendId) {
+              core.setFailed('The runtime token does not carry the artifact backend ids.');
+              return;
+            }
             const endpoint =
               new URL(resultsUrl).origin +
               '/twirp/github.actions.results.api.v1.ArtifactService/ListArtifacts';
+            const body = JSON.stringify({
+              workflowRunBackendId: runBackendId,
+              workflowJobRunBackendId: jobBackendId,
+            });
             for (let attempt = 1; attempt <= 60; attempt += 1) {
               try {
                 const response = await fetch(endpoint, {
@@ -220,18 +246,27 @@ jobs:
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${runtimeToken}`,
                   },
-                  body: '{}',
+                  body,
                 });
                 if (response.ok) {
                   const payload = await response.json();
                   const artifacts = payload.artifacts || [];
+                  if (attempt === 1) {
+                    core.info(
+                      `Artifact service lists: ${artifacts.map((item) => item.name).join(', ') || '(none)'}`
+                    );
+                  }
                   if (artifacts.some((artifact) => artifact.name === artifactName)) {
                     core.info(`The ${artifactName} artifact is visible (attempt ${attempt}).`);
                     return;
                   }
+                } else if (attempt === 1) {
+                  core.info(`Artifact list request failed with HTTP ${response.status}.`);
                 }
               } catch (error) {
-                core.debug(`Artifact list failed: ${error.message}`);
+                if (attempt === 1) {
+                  core.info(`Artifact list request failed: ${error.message}`);
+                }
               }
               await new Promise((resolve) => setTimeout(resolve, 2000));
             }
