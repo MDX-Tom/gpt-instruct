@@ -89,6 +89,29 @@ class ChartRenderTests(unittest.TestCase):
         second = trend.render("gpt-6.2-sol", self.versions, "en", "dark")
         self.assertEqual(first, second)
 
+    # A sparse version axis keeps one full label per slot.
+    def test_sparse_axis_uses_full_version_labels(self) -> None:
+        svg = trend.render("gpt-6.2-astra", self.versions, "zh", "light")
+        self.assertIn(">e1b1<", svg)
+        self.assertNotIn(">e1<", svg)
+
+    # A dense version axis replaces the full label with a beta number under an
+    # epoch band, so neighbouring versions cannot overlap.
+    def test_dense_axis_uses_epoch_bands_and_beta_numbers(self) -> None:
+        versions = [
+            {"beta": "e1b{0}".format(index), "a": (2, 8), "jba": None, "jbb": None}
+            for index in range(1, 13)
+        ]
+        versions += [
+            {"beta": "e2b{0}".format(index), "a": (2, 8), "jba": None, "jbb": None}
+            for index in range(1, 4)
+        ]
+        svg = trend.render("gpt-6.2-astra", versions, "zh", "light")
+        self.assertNotIn(">e1b1<", svg)
+        self.assertIn(">e1<", svg)
+        self.assertIn(">e2<", svg)
+        self.assertIn(">12<", svg)
+
     def test_dark_and_light_use_the_same_geometry(self) -> None:
         light = trend.render("gpt-6.2-astra", self.versions, "zh", "light")
         dark = trend.render("gpt-6.2-astra", self.versions, "zh", "dark")

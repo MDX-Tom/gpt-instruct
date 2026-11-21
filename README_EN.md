@@ -66,7 +66,7 @@ Click a chart to open the full-size image.
 | gpt-6.2-astra | gpt-6.2-sol |
 | :---: | :---: |
 | <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/gpt62-astra-ab-trend-en-dark.svg" /><source media="(prefers-color-scheme: light)" srcset="docs/images/gpt62-astra-ab-trend-en-light.svg" /><img alt="gpt-6.2-astra A / JB-A / JB-B / B iteration trend" src="docs/images/gpt62-astra-ab-trend-en-light.svg" width="100%" /></picture></p> | <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/gpt62-sol-ab-trend-en-dark.svg" /><source media="(prefers-color-scheme: light)" srcset="docs/images/gpt62-sol-ab-trend-en-light.svg" /><img alt="gpt-6.2-sol A / JB-A / JB-B / B iteration trend" src="docs/images/gpt62-sol-ab-trend-en-light.svg" width="100%" /></picture></p> |
-| **Four axes on one chart**: A gate 25% → 75%; JB-A manual refusal rate 73.7%–84.2%, JB-B 82.6%–93.4%; the B gate has not run. | **Four axes on one chart**: A gate 25%–50%; all 17 epoch-1 versions failed to release; the only JB readings are e2b4 (JB-A 73.68%, JB-B 84.29%); the B gate has not run. |
+| **Four axes on one chart**: A gate 25%–75%; JB-A manual refusal rate 70.0%–84.2%, JB-B 71.9%–93.4% (e2b19 down to 50/66 = 75.76%); the B gate has not run. | **Four axes on one chart**: A gate 12.5%–50%; all 17 epoch-1 versions failed to release; the only JB readings are e2b4 (JB-A 73.68%, JB-B 84.29%) and e2b18 (JB-A 75.0%, JB-B 51/70 = 72.86%); the B gate has not run. |
 
 | gpt-6.1-sol | gpt-6-astra |
 | :---: | :---: |
