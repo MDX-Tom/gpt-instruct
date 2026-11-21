@@ -193,26 +193,49 @@ jobs:
       # The artifact service can list a just-finalized upload a moment after
       # the upload step returns. A fast run used to query the artifact list in
       # that window and fail with "No artifacts named github-pages were found".
-      # Wait for the artifact to become visible before the deployment step
-      # looks it up.
+      # deploy-pages reads the artifact through the artifact service (Twirp),
+      # so wait on that same endpoint instead of the REST artifact list.
+      # A Node action is required: only those receive the runtime token.
       - name: Wait for the Pages artifact to become visible
         if: steps.render.outputs.changed == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 30); do
-            visible=$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
-              --jq '[.artifacts[] | select(.name == "github-pages")] | length' 2>/dev/null || echo 0)
-            if [ "${visible}" -gt 0 ]; then
-              echo "The github-pages artifact is visible (attempt ${attempt})."
-              exit 0
-            fi
-            sleep 2
-          done
-          echo "::error::The github-pages artifact did not become visible in time."
-          exit 1
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const artifactName = 'github-pages';
+            const resultsUrl = process.env.ACTIONS_RESULTS_URL;
+            const runtimeToken = process.env.ACTIONS_RUNTIME_TOKEN;
+            if (!resultsUrl || !runtimeToken) {
+              core.setFailed('The artifact service endpoint or runtime token is unavailable.');
+              return;
+            }
+            const endpoint =
+              new URL(resultsUrl).origin +
+              '/twirp/github.actions.results.api.v1.ArtifactService/ListArtifacts';
+            for (let attempt = 1; attempt <= 60; attempt += 1) {
+              try {
+                const response = await fetch(endpoint, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${runtimeToken}`,
+                  },
+                  body: '{}',
+                });
+                if (response.ok) {
+                  const payload = await response.json();
+                  const artifacts = payload.artifacts || [];
+                  if (artifacts.some((artifact) => artifact.name === artifactName)) {
+                    core.info(`The ${artifactName} artifact is visible (attempt ${attempt}).`);
+                    return;
+                  }
+                }
+              } catch (error) {
+                core.debug(`Artifact list failed: ${error.message}`);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+            }
+            core.setFailed(`The ${artifactName} artifact did not become visible in time.`);
 
       - name: Deploy Pages artifact
         if: steps.render.outputs.changed == 'true'

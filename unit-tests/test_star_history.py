@@ -346,8 +346,15 @@ class StarHistoryUpstreamPatchTests(unittest.TestCase):
         deploy = workflow.index("Deploy Pages artifact")
         self.assertLess(upload, wait)
         self.assertLess(wait, deploy)
-        self.assertIn("actions/runs/${GITHUB_RUN_ID}/artifacts", workflow)
-        self.assertIn('select(.name == "github-pages")', workflow)
+        # deploy-pages lists artifacts through the artifact service, so the wait
+        # has to poll that same endpoint rather than the REST artifact list.
+        # Only Node actions receive the artifact runtime token.
+        self.assertIn(
+            "github.actions.results.api.v1.ArtifactService/ListArtifacts", workflow
+        )
+        self.assertIn("ACTIONS_RUNTIME_TOKEN", workflow)
+        self.assertIn("ACTIONS_RESULTS_URL", workflow)
+        self.assertIn("uses: actions/github-script@v9", workflow)
 
     # Production may use GitHub repository metadata and this project's Pages
     # cache, but neither a hosted Star History endpoint nor stargazer listing.
