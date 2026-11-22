@@ -60,13 +60,13 @@ class ChartGeometryTests(unittest.TestCase):
 
 class ChartRenderTests(unittest.TestCase):
     versions = [
-        {"beta": "e1b1", "a": (2, 8), "jba": (3, 19), "jbb": (5, 76)},
-        {"beta": "e1b2", "a": (6, 8), "jba": None, "jbb": None},
+        {"beta": "e1b1", "a": (2, 8), "jba": (3, 19), "jbb": (5, 76), "b": None},
+        {"beta": "e1b2", "a": (6, 8), "jba": None, "jbb": None, "b": None},
     ]
 
     def test_four_gates_appear_in_the_legend(self) -> None:
         svg = trend.render("gpt-6.2-astra", self.versions, "zh", "light")
-        for label in ("A cases", "JB-A cases", "JB-B cases", "B cases（未运行）"):
+        for label in ("A cases", "JB-A cases", "JB-B cases", "B cases"):
             self.assertIn(label, svg)
 
     def test_only_recorded_readings_are_plotted(self) -> None:
@@ -76,7 +76,16 @@ class ChartRenderTests(unittest.TestCase):
         self.assertEqual(svg.count('fill="#708C7A" stroke="#FBFAF7"'), 1)
         self.assertEqual(svg.count('fill="#B07D62" stroke="#FBFAF7"'), 1)
         # The B gate has no recorded run, so it has no plotted series.
-        self.assertNotIn('stroke="#8C8A84" stroke-width="3.5" stroke-linecap', svg)
+        self.assertNotIn('stroke="#8B729B" stroke-width="3.5" stroke-linecap', svg)
+
+    def test_a_recorded_b_gate_reading_is_plotted(self) -> None:
+        versions = [
+            {"beta": "e2b20", "a": (5, 12), "jba": (7, 20), "jbb": (17, 67), "b": (56, 66)},
+        ]
+        svg = trend.render("gpt-6.2-astra", versions, "zh", "light")
+        self.assertIn('stroke="#8B729B" stroke-width="3.5" stroke-linecap', svg)
+        self.assertIn('fill="#8B729B" stroke="#FBFAF7"', svg)
+        self.assertIn(">56/66<", svg)
 
     def test_value_labels_use_the_compliant_over_completed_reading(self) -> None:
         svg = trend.render("gpt-6.2-astra", self.versions, "zh", "light")
@@ -156,6 +165,52 @@ class EvidenceExtractionTests(unittest.TestCase):
         # Seven completed cases: one interrupted case leaves the denominator.
         self.assertEqual(entry["jba"], (2, 7))
         self.assertIsNone(entry["jbb"])
+
+    def _collect(self, root: Path, epoch: str, line: str = "gpt-6.2-astra") -> list[dict]:
+        original_root = trend.ROOT
+        original_epochs = trend.EPOCHS
+        try:
+            trend.ROOT = root
+            trend.EPOCHS = [epoch]
+            return trend.collect_line(line)
+        finally:
+            trend.ROOT = original_root
+            trend.EPOCHS = original_epochs
+
+    def test_the_pooled_a_decision_schema_is_read(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            beta = root / "reports" / "gpt62-dual-line-epoch2-2026-11-19" / "lines" / "gpt-6.2-astra" / "e2b21"
+            (beta / "gates").mkdir(parents=True)
+            (beta / "gates" / "A_DECISION.json").write_text(json.dumps({
+                "schema": "gpt62-a-decision-v1",
+                "combined_pooled": "8/12",
+                "per_round": {"A_run1": 3, "A_run2": 3, "A_run3": 2},
+            }), encoding="utf-8")
+            versions = self._collect(root, "gpt62-dual-line-epoch2-2026-11-19")
+
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(versions[0]["a"], (8, 12))
+
+    def test_the_b_gate_reading_needs_the_human_review_layer(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            beta = root / "reports" / "gpt62-dual-line-epoch2-2026-11-19" / "lines" / "gpt-6.2-astra" / "e2b20"
+            run_dir = beta / "gates" / "B" / "issue_cases"
+            run_dir.mkdir(parents=True)
+            (run_dir / "B_HUMAN_SUMMARY.json").write_text(json.dumps({
+                "cases": 66,
+                "human_case_pass": 56,
+            }), encoding="utf-8")
+            # Without the per-case review the reading does not count yet.
+            versions = self._collect(root, "gpt62-dual-line-epoch2-2026-11-19")
+            self.assertEqual(versions, [])
+
+            (run_dir / "manual-review.jsonl").write_text("{}\n", encoding="utf-8")
+            versions = self._collect(root, "gpt62-dual-line-epoch2-2026-11-19")
+
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(versions[0]["b"], (56, 66))
 
 
 if __name__ == "__main__":

@@ -69,7 +69,7 @@
 | gpt-6.2-astra | gpt-6.2-sol |
 | :---: | :---: |
 | <p align="center"><a href="https://raw.githubusercontent.com/MDX-Tom/gpt-instruct/main/docs/images/gpt62-astra-ab-trend-zh-light.svg"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/gpt62-astra-ab-trend-zh-dark.svg" /><source media="(prefers-color-scheme: light)" srcset="docs/images/gpt62-astra-ab-trend-zh-light.svg" /><img alt="gpt-6.2-astra 的 A / JB-A / JB-B / B 迭代通过率" src="docs/images/gpt62-astra-ab-trend-zh-light.svg" width="100%" /></picture></a></p> | <p align="center"><a href="https://raw.githubusercontent.com/MDX-Tom/gpt-instruct/main/docs/images/gpt62-sol-ab-trend-zh-light.svg"><picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/gpt62-sol-ab-trend-zh-dark.svg" /><source media="(prefers-color-scheme: light)" srcset="docs/images/gpt62-sol-ab-trend-zh-light.svg" /><img alt="gpt-6.2-sol 的 A / JB-A / JB-B / B 迭代通过率" src="docs/images/gpt62-sol-ab-trend-zh-light.svg" width="100%" /></picture></a></p> |
-| **四轴同图**：A 门禁 25%–75%；JB-A 人工拒答率 65.0%–84.2%，JB-B 71.9%–93.4%（e2b20 为 50/67 = 74.63%）；B 门禁未运行。 | **四轴同图**：A 门禁 12.5%–50%，epoch 1 的 17 版全部未放行；JB 读数只有 e2b4（JB-A 73.68%，JB-B 84.29%）、e2b18（JB-A 75.0%，JB-B 51/70 = 72.86%）与 e2b22（JB-B 54/67 = 80.60%）；B 门禁未运行。 |
+| **四轴同图**：A 门禁 25%–75%；JB-A 人工拒答率 65.0%–84.2%，JB-B 71.9%–93.4%（e2b20 为 50/67 = 74.63%）；B 门禁首次在 6.2 线上运行：e2b8 54/66 = 81.8%（旧设置）、e2b20 56/66 = 84.8%。 | **四轴同图**：A 门禁 12.5%–50%，epoch 1 的 17 版全部未放行；JB 读数只有 e2b4（JB-A 73.68%，JB-B 84.29%）、e2b18（JB-A 75.0%，JB-B 51/70 = 72.86%）与 e2b22（JB-B 54/67 = 80.60%）；B 门禁首次在 6.2 线上运行：e2b18 50/66 = 75.8%。 |
 
 | gpt-6.1-sol | gpt-6-astra |
 | :---: | :---: |
